@@ -1,1388 +1,557 @@
+```html
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>My Gallery</title>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Outfit:wght@200;300;400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=Outfit:wght@200;300;400&display=swap" rel="stylesheet">
+
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
 
-  :root {
-    --cream: #f5f0e8;
-    --ink: #1a1714;
-    --dust: rgba(245,240,232,0.08);
-    --glass: rgba(20,17,14,0.55);
-    --accent: #c8a96e;
-    --accent2: #8ab4a0;
-    --danger: #c0392b;
-  }
+html,body{
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:black;
+  font-family:'Outfit',sans-serif;
+  color:white;
+}
 
-  html, body {
-    width: 100%; height: 100%;
-    overflow: hidden;
-    background: #0d0b09;
-    font-family: 'Outfit', sans-serif;
-    color: var(--cream);
-    cursor: default;
-  }
+body{
+  cursor:default;
+}
 
-  /* ── BACKGROUND MEDIA ── */
-  #bg-container {
-    position: fixed; inset: 0; z-index: 0;
-  }
-  #bg-img {
-    position: absolute; inset: 0;
-    width: 100%; height: 100%;
-    object-fit: cover;
-    opacity: 0;
-    transition: opacity 1.2s ease;
-  }
-  #bg-video {
-    position: absolute; inset: 0;
-    width: 100%; height: 100%;
-    object-fit: cover;
-    opacity: 0;
-    transition: opacity 1.2s ease;
-  }
-  #bg-img.active, #bg-video.active { opacity: 1; }
+/* BACKGROUND */
+#bg{
+  position:fixed;
+  inset:0;
+  z-index:0;
+}
 
-  .bg-overlay {
-    position: absolute; inset: 0;
-    background: linear-gradient(
-      to top,
-      rgba(13,11,9,0.92) 0%,
-      rgba(13,11,9,0.3) 40%,
-      rgba(13,11,9,0.15) 70%,
-      rgba(13,11,9,0.4) 100%
-    );
-  }
+#bg img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  position:absolute;
+  inset:0;
+  opacity:0;
+  transition:opacity 1.5s ease;
+}
 
-  /* ── GRAIN ── */
-  .grain {
-    position: fixed; inset: 0; z-index: 1; pointer-events: none;
-    opacity: 0.035;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-    background-size: 180px;
-  }
+#bg img.active{
+  opacity:1;
+}
 
-  /* ── MEDIA INFO (top-left) ── */
-  #media-info {
-    position: fixed; top: 36px; left: 40px; z-index: 10;
-    display: flex; flex-direction: column; gap: 4px;
-    opacity: 0; transition: opacity 0.6s;
-  }
-  #media-info.visible { opacity: 1; }
-  #media-index {
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic; font-size: 13px;
-    color: rgba(245,240,232,0.45); letter-spacing: 2px;
-  }
-  #media-title {
-    font-size: 15px; font-weight: 300;
-    color: var(--cream); letter-spacing: 1px;
-  }
+.overlay{
+  position:absolute;
+  inset:0;
+  background:
+  linear-gradient(
+    to top,
+    rgba(0,0,0,0.88) 0%,
+    rgba(0,0,0,0.25) 45%,
+    rgba(0,0,0,0.08) 100%
+  );
+}
 
-  /* ── MEDIA NAV DOTS (top-right) ── */
-  #media-dots {
-    position: fixed; top: 40px; right: 40px; z-index: 10;
-    display: flex; gap: 8px; align-items: center;
-  }
-  .dot {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: rgba(245,240,232,0.25);
-    cursor: pointer; transition: all 0.3s;
-  }
-  .dot.active { background: var(--accent); transform: scale(1.4); }
-  .dot:hover { background: rgba(245,240,232,0.6); }
+/* GRAIN */
+.grain{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  opacity:0.03;
+  z-index:2;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
 
-  /* ── PLAYER (bottom) ── */
-  #player {
-    position: fixed; bottom: 0; left: 0; right: 0; z-index: 10;
-    padding: 0 40px 36px;
-    display: flex; flex-direction: column; gap: 14px;
-  }
+/* TOP INFO */
+#top{
+  position:fixed;
+  top:32px;
+  left:32px;
+  z-index:10;
+}
 
-  /* track info */
-  #track-info {
-    display: flex; flex-direction: column; gap: 3px;
-    animation: fadeUp 0.6s ease both;
-  }
-  #track-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(22px, 3vw, 36px);
-    font-weight: 300; letter-spacing: 1px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    max-width: 60vw;
-  }
-  #track-artist {
-    font-size: 13px; font-weight: 200;
-    color: rgba(245,240,232,0.5); letter-spacing: 2px;
-    text-transform: uppercase;
-  }
+#index{
+  font-size:12px;
+  letter-spacing:2px;
+  opacity:.45;
+  margin-bottom:6px;
+}
 
-  /* progress */
-  #progress-row {
-    display: flex; align-items: center; gap: 14px;
-  }
-  #progress-wrap {
-    flex: 1; position: relative; height: 2px;
-    background: rgba(245,240,232,0.15);
-    cursor: pointer; border-radius: 2px;
-  }
-  #progress-bar {
-    height: 100%; background: var(--accent);
-    border-radius: 2px; width: 0%;
-    transition: width 0.1s linear;
-    pointer-events: none;
-  }
-  #progress-wrap:hover #progress-bar { background: var(--cream); }
-  .time-label {
-    font-size: 11px; font-weight: 300;
-    color: rgba(245,240,232,0.4); letter-spacing: 1px;
-    min-width: 36px;
-  }
-  #time-current { text-align: right; }
+#photo-name{
+  font-size:14px;
+  font-weight:300;
+}
 
-  /* controls */
-  #controls {
-    display: flex; align-items: center; gap: 32px;
-  }
-  .ctrl-btn {
-    background: none; border: none; cursor: pointer;
-    color: rgba(245,240,232,0.65);
-    transition: color 0.2s, transform 0.15s;
-    padding: 4px; display: flex; align-items: center;
-  }
-  .ctrl-btn:hover { color: var(--cream); transform: scale(1.1); }
-  .ctrl-btn.play-btn {
-    color: var(--cream);
-    background: rgba(245,240,232,0.08);
-    border: 1px solid rgba(245,240,232,0.2);
-    border-radius: 50%; width: 52px; height: 52px;
-    justify-content: center;
-  }
-  .ctrl-btn.play-btn:hover {
-    background: rgba(200,169,110,0.2);
-    border-color: var(--accent);
-    color: var(--accent);
-  }
+/* PLAYER */
+#player{
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+  z-index:10;
+  padding:32px;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
 
-  /* volume */
-  #vol-wrap { display: flex; align-items: center; gap: 10px; margin-left: auto; }
-  #vol-slider {
-    -webkit-appearance: none; appearance: none;
-    width: 80px; height: 2px;
-    background: rgba(245,240,232,0.15); border-radius: 2px; outline: none; cursor: pointer;
-  }
-  #vol-slider::-webkit-slider-thumb {
-    -webkit-appearance: none; width: 12px; height: 12px;
-    border-radius: 50%; background: var(--accent); cursor: pointer;
-  }
+/* TRACK */
+#track-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:38px;
+  font-weight:300;
+  margin-bottom:4px;
+}
 
-  /* ── ADMIN TOGGLE ── */
-  #admin-toggle {
-    position: fixed; top: 36px; left: 50%; transform: translateX(-50%); z-index: 20;
-    background: rgba(20,17,14,0.6); border: 1px solid rgba(245,240,232,0.12);
-    color: rgba(245,240,232,0.35); font-family: 'Outfit', sans-serif;
-    font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
-    padding: 8px 20px; border-radius: 20px; cursor: pointer;
-    backdrop-filter: blur(12px);
-    transition: all 0.3s;
-  }
-  #admin-toggle:hover { color: var(--accent); border-color: var(--accent); }
+#track-artist{
+  font-size:12px;
+  letter-spacing:2px;
+  opacity:.5;
+  text-transform:uppercase;
+}
 
-  /* ── PASSWORD MODAL ── */
-  #pw-modal {
-    position: fixed; inset: 0; z-index: 100;
-    background: rgba(13,11,9,0.85); backdrop-filter: blur(20px);
-    display: none; align-items: center; justify-content: center;
-  }
-  #pw-modal.open { display: flex; }
-  .pw-box {
-    background: rgba(25,22,18,0.95);
-    border: 1px solid rgba(245,240,232,0.12);
-    border-radius: 16px; padding: 48px 56px;
-    display: flex; flex-direction: column; gap: 20px;
-    align-items: center; min-width: 320px;
-  }
-  .pw-box h2 {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 26px; font-weight: 300; letter-spacing: 1px;
-  }
-  .pw-box p {
-    font-size: 12px; color: rgba(245,240,232,0.4);
-    letter-spacing: 1px; text-align: center;
-  }
-  #pw-input {
-    background: rgba(245,240,232,0.06);
-    border: 1px solid rgba(245,240,232,0.18);
-    border-radius: 8px; padding: 14px 20px;
-    color: var(--cream); font-family: 'Outfit', sans-serif;
-    font-size: 15px; width: 100%; outline: none;
-    letter-spacing: 4px; text-align: center;
-  }
-  #pw-input:focus { border-color: var(--accent); }
-  #pw-error { font-size: 12px; color: var(--danger); display: none; }
-  .pw-btn {
-    background: var(--accent); color: var(--ink);
-    border: none; border-radius: 8px; padding: 14px 40px;
-    font-family: 'Outfit', sans-serif; font-size: 13px;
-    font-weight: 400; letter-spacing: 2px; text-transform: uppercase;
-    cursor: pointer; transition: opacity 0.2s;
-  }
-  .pw-btn:hover { opacity: 0.85; }
-  .pw-cancel {
-    background: none; border: none; color: rgba(245,240,232,0.3);
-    font-size: 12px; cursor: pointer; letter-spacing: 1px;
-  }
-  .pw-cancel:hover { color: var(--cream); }
+/* PROGRESS */
+#progress-wrap{
+  width:100%;
+  height:2px;
+  background:rgba(255,255,255,0.15);
+  cursor:pointer;
+}
 
-  /* ── ADMIN PANEL ── */
-  #admin-panel {
-    position: fixed; right: 0; top: 0; bottom: 0; z-index: 50;
-    width: 380px;
-    background: rgba(13,11,9,0.92); backdrop-filter: blur(24px);
-    border-left: 1px solid rgba(245,240,232,0.08);
-    transform: translateX(100%); transition: transform 0.4s cubic-bezier(.4,0,.2,1);
-    display: flex; flex-direction: column; overflow: hidden;
-  }
-  #admin-panel.open { transform: translateX(0); }
+#progress{
+  width:0%;
+  height:100%;
+  background:white;
+}
 
-  .panel-header {
-    padding: 28px 28px 20px;
-    border-bottom: 1px solid rgba(245,240,232,0.07);
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .panel-header h3 {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 20px; font-weight: 300; letter-spacing: 1px;
-  }
-  #panel-close {
-    background: none; border: none; color: rgba(245,240,232,0.4);
-    cursor: pointer; font-size: 20px; transition: color 0.2s;
-  }
-  #panel-close:hover { color: var(--cream); }
+/* CONTROLS */
+#controls{
+  display:flex;
+  align-items:center;
+  gap:24px;
+}
 
-  .panel-tabs {
-    display: flex;
-    border-bottom: 1px solid rgba(245,240,232,0.07);
-  }
-  .tab-btn {
-    flex: 1; padding: 14px; background: none; border: none;
-    color: rgba(245,240,232,0.35); font-family: 'Outfit', sans-serif;
-    font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
-    cursor: pointer; transition: all 0.2s;
-    border-bottom: 2px solid transparent;
-  }
-  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+button{
+  background:none;
+  border:none;
+  color:white;
+  cursor:pointer;
+  opacity:.7;
+  transition:.2s;
+}
 
-  .tab-content { display: none; flex: 1; overflow-y: auto; padding: 20px; flex-direction: column; gap: 14px; }
-  .tab-content.active { display: flex; }
+button:hover{
+  opacity:1;
+}
 
-  /* scrollbar */
-  .tab-content::-webkit-scrollbar { width: 3px; }
-  .tab-content::-webkit-scrollbar-track { background: transparent; }
-  .tab-content::-webkit-scrollbar-thumb { background: rgba(245,240,232,0.15); border-radius: 2px; }
+#play-btn{
+  width:54px;
+  height:54px;
+  border-radius:50%;
+  border:1px solid rgba(255,255,255,0.2);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
 
-  /* Upload zone */
-  .upload-zone {
-    border: 1px dashed rgba(245,240,232,0.2);
-    border-radius: 12px; padding: 28px;
-    text-align: center; cursor: pointer;
-    transition: all 0.3s; position: relative;
-  }
-  .upload-zone:hover, .upload-zone.drag { border-color: var(--accent); background: rgba(200,169,110,0.05); }
-  .upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-  .upload-icon { font-size: 28px; margin-bottom: 8px; }
-  .upload-zone p { font-size: 12px; color: rgba(245,240,232,0.4); letter-spacing: 1px; line-height: 1.6; }
-  .upload-zone span { color: var(--accent); }
+#playlist{
+  position:fixed;
+  right:32px;
+  bottom:140px;
+  width:280px;
+  background:rgba(0,0,0,0.55);
+  backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:18px;
+  padding:18px;
+  z-index:20;
+}
 
-  /* Media list */
-  .media-list { display: flex; flex-direction: column; gap: 8px; }
-  .media-item {
-    display: flex; align-items: center; gap: 12px;
-    padding: 10px 14px; border-radius: 10px;
-    background: rgba(245,240,232,0.04);
-    border: 1px solid rgba(245,240,232,0.06);
-    transition: background 0.2s;
-  }
-  .media-item:hover { background: rgba(245,240,232,0.08); }
-  .media-thumb {
-    width: 40px; height: 40px; border-radius: 6px;
-    object-fit: cover; background: rgba(245,240,232,0.08);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px; flex-shrink: 0; overflow: hidden;
-  }
-  .media-thumb img, .media-thumb video {
-    width: 100%; height: 100%; object-fit: cover; border-radius: 6px;
-  }
-  .media-item-info { flex: 1; min-width: 0; }
-  .media-item-name {
-    font-size: 12px; font-weight: 300; letter-spacing: 0.5px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .media-item-type { font-size: 10px; color: rgba(245,240,232,0.3); letter-spacing: 1px; text-transform: uppercase; }
-  .item-actions { display: flex; gap: 6px; flex-shrink: 0; }
-  .item-btn {
-    background: none; border: none; cursor: pointer;
-    color: rgba(245,240,232,0.3); font-size: 14px;
-    padding: 4px; transition: color 0.2s;
-  }
-  .item-btn:hover { color: var(--cream); }
-  .item-btn.del:hover { color: var(--danger); }
+#playlist h3{
+  font-size:11px;
+  letter-spacing:3px;
+  margin-bottom:14px;
+  opacity:.4;
+  text-transform:uppercase;
+}
 
-  /* Playlist items */
-  .playlist-item {
-    display: flex; align-items: center; gap: 12px;
-    padding: 10px 14px; border-radius: 10px;
-    background: rgba(245,240,232,0.04);
-    border: 1px solid rgba(245,240,232,0.06);
-    transition: all 0.2s; cursor: pointer;
-  }
-  .playlist-item:hover { background: rgba(245,240,232,0.08); }
-  .playlist-item.playing { border-color: rgba(200,169,110,0.4); background: rgba(200,169,110,0.06); }
-  .track-num {
-    font-size: 11px; color: rgba(245,240,232,0.25);
-    width: 20px; text-align: center; flex-shrink: 0;
-  }
-  .playlist-item.playing .track-num { color: var(--accent); }
-  .track-info-small { flex: 1; min-width: 0; }
-  .track-name-small {
-    font-size: 12px; font-weight: 300;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .track-dur { font-size: 11px; color: rgba(245,240,232,0.3); }
+.track{
+  padding:10px;
+  border-radius:10px;
+  cursor:pointer;
+  transition:.2s;
+}
 
-  .section-label {
-    font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
-    color: rgba(245,240,232,0.25); padding: 4px 0;
+.track:hover{
+  background:rgba(255,255,255,0.06);
+}
+
+.track.active{
+  background:rgba(255,255,255,0.1);
+}
+
+.track-title{
+  font-size:13px;
+}
+
+.track-artist{
+  font-size:10px;
+  opacity:.4;
+  margin-top:2px;
+}
+
+audio{
+  display:none;
+}
+
+@media(max-width:768px){
+
+  #player{
+    padding:20px;
   }
 
-  /* Add music form */
-  .add-music-form { display: flex; flex-direction: column; gap: 10px; }
-  .form-input {
-    background: rgba(245,240,232,0.06);
-    border: 1px solid rgba(245,240,232,0.12);
-    border-radius: 8px; padding: 12px 14px;
-    color: var(--cream); font-family: 'Outfit', sans-serif;
-    font-size: 13px; outline: none; width: 100%;
-    transition: border-color 0.2s;
-  }
-  .form-input:focus { border-color: var(--accent); }
-  .form-input::placeholder { color: rgba(245,240,232,0.25); }
-  .add-btn {
-    background: rgba(200,169,110,0.15); border: 1px solid rgba(200,169,110,0.3);
-    color: var(--accent); font-family: 'Outfit', sans-serif;
-    font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
-    padding: 12px; border-radius: 8px; cursor: pointer;
-    transition: all 0.2s;
-  }
-  .add-btn:hover { background: rgba(200,169,110,0.25); }
-
-  /* ── VISITOR PLAYLIST VIEW ── */
-  #playlist-overlay {
-    position: fixed; bottom: 140px; left: 40px; z-index: 15;
-    background: rgba(13,11,9,0.8); backdrop-filter: blur(20px);
-    border: 1px solid rgba(245,240,232,0.08);
-    border-radius: 16px; width: 300px;
-    max-height: 320px; overflow: hidden;
-    transform: translateY(20px); opacity: 0;
-    transition: all 0.35s cubic-bezier(.4,0,.2,1);
-    pointer-events: none;
-  }
-  #playlist-overlay.open { opacity: 1; transform: translateY(0); pointer-events: all; }
-  .overlay-header {
-    padding: 16px 20px 12px;
-    border-bottom: 1px solid rgba(245,240,232,0.06);
-    font-size: 11px; letter-spacing: 3px;
-    text-transform: uppercase; color: rgba(245,240,232,0.35);
-  }
-  .overlay-list { overflow-y: auto; max-height: 260px; padding: 8px; }
-  .overlay-list::-webkit-scrollbar { width: 2px; }
-  .overlay-list::-webkit-scrollbar-thumb { background: rgba(245,240,232,0.1); }
-  .overlay-track {
-    display: flex; align-items: center; gap: 10px;
-    padding: 8px 12px; border-radius: 8px; cursor: pointer;
-    transition: background 0.2s;
-  }
-  .overlay-track:hover { background: rgba(245,240,232,0.06); }
-  .overlay-track.playing { background: rgba(200,169,110,0.08); }
-  .overlay-track-num { font-size: 10px; color: rgba(245,240,232,0.25); width: 18px; }
-  .overlay-track.playing .overlay-track-num { color: var(--accent); }
-  .overlay-track-name { font-size: 12px; font-weight: 300; flex: 1;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-  /* playlist toggle btn */
-  #playlist-toggle {
-    background: none; border: none; cursor: pointer;
-    color: rgba(245,240,232,0.5); padding: 4px;
-    transition: color 0.2s;
-  }
-  #playlist-toggle:hover { color: var(--cream); }
-  #playlist-toggle.active { color: var(--accent); }
-
-  /* ── EMPTY STATE ── */
-  .empty-state {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    height: 100vh; gap: 16px; text-align: center;
-    padding: 40px;
-  }
-  .empty-state h1 {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(32px, 6vw, 72px); font-weight: 300;
-    letter-spacing: 2px; line-height: 1.2;
-  }
-  .empty-state p { font-size: 13px; color: rgba(245,240,232,0.35); letter-spacing: 2px; }
-
-  /* ── MEDIA SLIDESHOW arrows ── */
-  #prev-media, #next-media {
-    position: fixed; top: 50%; z-index: 10;
-    background: rgba(13,11,9,0.4); border: 1px solid rgba(245,240,232,0.1);
-    color: rgba(245,240,232,0.5); font-size: 18px;
-    width: 44px; height: 44px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: all 0.2s;
-    transform: translateY(-50%); backdrop-filter: blur(8px);
-    opacity: 0;
-  }
-  #prev-media { left: 20px; }
-  #next-media { right: 20px; }
-  body:hover #prev-media, body:hover #next-media { opacity: 1; }
-  #prev-media:hover, #next-media:hover {
-    background: rgba(200,169,110,0.2); border-color: var(--accent);
-    color: var(--accent);
+  #track-title{
+    font-size:28px;
   }
 
-  /* ── ANIMATIONS ── */
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to { opacity: 1; transform: translateY(0); }
+  #playlist{
+    left:20px;
+    right:20px;
+    width:auto;
+    bottom:150px;
   }
 
-  /* Shuffle/repeat icons color */
-  .ctrl-btn.active-mode { color: var(--accent2) !important; }
-
-  /* Drag handle */
-  .drag-handle { cursor: grab; color: rgba(245,240,232,0.2); font-size: 14px; }
-  .drag-handle:active { cursor: grabbing; }
-
-  /* badge */
-  .badge {
-    display: inline-block; font-size: 9px; letter-spacing: 1.5px;
-    text-transform: uppercase; padding: 2px 7px; border-radius: 10px;
-    background: rgba(200,169,110,0.15); color: var(--accent);
-    margin-left: 8px; vertical-align: middle;
-  }
-
-  /* hidden audio */
-  audio { display: none; }
-  /* ── MOBILE RESPONSIVE ── */
-  @media (max-width: 600px) {
-    #player { padding: 0 20px 28px; gap: 10px; }
-    #track-title { font-size: clamp(18px, 5vw, 26px); max-width: 80vw; }
-    #track-artist { font-size: 11px; }
-    #controls { gap: 16px; }
-    #vol-wrap { display: none; }
-    #shuffle-btn, #repeat-btn { display: none; }
-    .ctrl-btn.play-btn { width: 58px; height: 58px; }
-    #admin-toggle { font-size: 10px; padding: 7px 14px; top: 20px; }
-    #media-info { top: 20px; left: 20px; }
-    #media-dots { top: 20px; right: 20px; }
-    #prev-media, #next-media { opacity: 0.65 !important; width: 36px; height: 36px; font-size: 14px; }
-    #prev-media { left: 8px; }
-    #next-media { right: 8px; }
-    #admin-panel { width: 100%; border-left: none; }
-    #playlist-overlay { left: 16px; right: 16px; width: auto; bottom: 170px; }
-    .pw-box { padding: 36px 28px; min-width: unset; width: 90vw; }
-    #fullscreen-btn { bottom: 28px; right: 20px; }
-    #progress-wrap { height: 4px; }
-    .empty-state p { font-size: 12px; letter-spacing: 1px; }
-    .time-label { font-size: 10px; min-width: 28px; }
-  }
-
-  /* 아이폰 노치/홈바 safe area 대응 */
-  @supports (padding-bottom: env(safe-area-inset-bottom)) {
-    #player { padding-bottom: calc(28px + env(safe-area-inset-bottom)); }
-  }
-
-
-
-
-  /* ── 모바일 가로화면 전체화면 최적화 ── */
-  @media (max-width: 900px) and (orientation: landscape) {
-    #player {
-      padding: 0 24px 16px;
-      gap: 8px;
-    }
-    #track-title {
-      font-size: clamp(14px, 3vw, 22px);
-      max-width: 55vw;
-    }
-    #track-artist { font-size: 10px; }
-    .ctrl-btn.play-btn { width: 46px; height: 46px; }
-    #controls { gap: 20px; }
-    #progress-wrap { height: 3px; }
-  }
-
-  /* ── FULLSCREEN MODE ── */
-  #fullscreen-btn {
-    position: fixed; bottom: 40px; right: 40px; z-index: 20;
-    background: rgba(20,17,14,0.5); border: 1px solid rgba(245,240,232,0.12);
-    color: rgba(245,240,232,0.45); width: 38px; height: 38px;
-    border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    cursor: pointer; backdrop-filter: blur(10px);
-    transition: all 0.25s;
-  }
-  #fullscreen-btn:hover { color: var(--accent); border-color: var(--accent); background: rgba(200,169,110,0.1); }
-
-  /* 전체화면 상태 — UI 전체 숨기기 */
-  body.fullscreen-mode #admin-toggle,
-  body.fullscreen-mode #media-info,
-  body.fullscreen-mode #media-dots,
-  body.fullscreen-mode #prev-media,
-  body.fullscreen-mode #next-media,
-  body.fullscreen-mode #playlist-overlay {
-    opacity: 0 !important;
-    pointer-events: none !important;
-    transition: opacity 0.4s ease;
-  }
-
-  body.fullscreen-mode #player {
-    opacity: 0;
-    transform: translateY(20px);
-    pointer-events: none;
-    transition: opacity 0.4s ease, transform 0.4s ease;
-  }
-
-  body.fullscreen-mode #fullscreen-btn {
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.4s ease;
-  }
-
-  /* 커서 올렸을 때 컨트롤만 등장 */
-  body.fullscreen-mode.cursor-active #player {
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: all;
-  }
-
-  body.fullscreen-mode.cursor-active #fullscreen-btn {
-    opacity: 1;
-    pointer-events: all;
-  }
-
-  /* 전체화면 모드일 때 커서 숨기기 (비활성 상태) */
-  body.fullscreen-mode { cursor: none; }
-  body.fullscreen-mode.cursor-active { cursor: default; }
-
-  /* 전체화면 모드에서 배경 오버레이 살짝 줄이기 (사진 더 잘 보이게) */
-  body.fullscreen-mode .bg-overlay {
-    background: linear-gradient(
-      to top,
-      rgba(13,11,9,0.5) 0%,
-      rgba(13,11,9,0.05) 40%,
-      rgba(13,11,9,0.05) 70%,
-      rgba(13,11,9,0.1) 100%
-    );
-    transition: background 0.6s ease;
-  }
-
-  /* ESC 힌트 */
-  #esc-hint {
-    position: fixed; top: 28px; right: 28px; z-index: 20;
-    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
-    color: rgba(245,240,232,0.25); pointer-events: none;
-    opacity: 0; transition: opacity 0.4s;
-  }
-  body.fullscreen-mode.cursor-active #esc-hint { opacity: 1; }
+}
 </style>
 </head>
 <body>
 
-<!-- Grain overlay -->
+<div id="bg"></div>
 <div class="grain"></div>
 
-<!-- Background -->
-<div id="bg-container">
-  <img id="bg-img" src="" alt="">
-  <video id="bg-video" src="" muted loop playsinline></video>
-  <div class="bg-overlay"></div>
+<div id="top">
+  <div id="index"></div>
+  <div id="photo-name"></div>
 </div>
 
-<!-- Media nav arrows -->
-<button id="prev-media" onclick="changeMedia(-1)">&#8592;</button>
-<button id="next-media" onclick="changeMedia(1)">&#8594;</button>
-
-<!-- Media info top-left -->
-<div id="media-info">
-  <div id="media-index">— 01 / 01</div>
-  <div id="media-title">untitled</div>
+<div id="playlist">
+  <h3>Playlist</h3>
+  <div id="playlist-items"></div>
 </div>
 
-<!-- Dots top-right -->
-<div id="media-dots"></div>
-
-<!-- Admin toggle -->
-<button id="admin-toggle" onclick="openPwModal()">관리자 ✦</button>
-
-<!-- Password Modal -->
-<div id="pw-modal">
-  <div class="pw-box">
-    <h2>관리자 모드</h2>
-    <p>비밀번호를 입력하세요</p>
-    <input type="password" id="pw-input" placeholder="••••••" onkeydown="if(event.key==='Enter')checkPw()">
-    <div id="pw-error">비밀번호가 틀렸습니다</div>
-    <button class="pw-btn" onclick="checkPw()">입장</button>
-    <button class="pw-cancel" onclick="closePwModal()">취소</button>
-  </div>
-</div>
-
-<!-- Admin Panel -->
-<div id="admin-panel">
-  <div class="panel-header">
-    <h3>관리자 패널 <span class="badge">ADMIN</span></h3>
-    <button id="panel-close" onclick="closeAdminPanel()">✕</button>
-  </div>
-  <div class="panel-tabs">
-    <button class="tab-btn active" onclick="switchTab('media')">미디어</button>
-    <button class="tab-btn" onclick="switchTab('music')">음악</button>
-    <button class="tab-btn" onclick="switchTab('settings')">설정</button>
-  </div>
-
-  <!-- MEDIA TAB -->
-  <div class="tab-content active" id="tab-media">
-    <div class="upload-zone" id="media-drop">
-      <input type="file" id="media-upload" accept="image/*,video/*" multiple onchange="handleMediaUpload(this.files)">
-      <div class="upload-icon">🖼</div>
-      <p>사진 또는 영상을 드래그하거나<br><span>클릭하여 업로드</span></p>
-      <p style="margin-top:6px;font-size:10px;color:rgba(245,240,232,0.2)">JPG, PNG, GIF, MP4, MOV, WEBM</p>
-    </div>
-    <div class="section-label">업로드된 미디어</div>
-    <div class="media-list" id="admin-media-list"></div>
-  </div>
-
-  <!-- MUSIC TAB -->
-  <div class="tab-content" id="tab-music">
-    <div class="upload-zone">
-      <input type="file" id="music-upload" accept="audio/*" multiple onchange="handleMusicUpload(this.files)">
-      <div class="upload-icon">🎵</div>
-      <p>음악 파일을 드래그하거나<br><span>클릭하여 업로드</span></p>
-      <p style="margin-top:6px;font-size:10px;color:rgba(245,240,232,0.2)">MP3, WAV, FLAC, M4A, OGG</p>
-    </div>
-    <div class="section-label">— 또는 URL로 추가</div>
-    <div class="add-music-form">
-      <input type="text" class="form-input" id="music-url" placeholder="음악 URL (MP3, SoundCloud 등)">
-      <input type="text" class="form-input" id="music-title" placeholder="곡 제목">
-      <input type="text" class="form-input" id="music-artist" placeholder="아티스트 (선택)">
-      <button class="add-btn" onclick="addMusicByUrl()">+ 추가</button>
-    </div>
-    <div class="section-label">플레이리스트</div>
-    <div class="media-list" id="admin-playlist"></div>
-  </div>
-
-  <!-- SETTINGS TAB -->
-  <div class="tab-content" id="tab-settings">
-    <div class="section-label">관리자 비밀번호 변경</div>
-    <div class="add-music-form">
-      <input type="password" class="form-input" id="new-pw" placeholder="새 비밀번호">
-      <input type="password" class="form-input" id="new-pw2" placeholder="비밀번호 확인">
-      <button class="add-btn" onclick="changePw()">변경</button>
-    </div>
-    <div class="section-label" style="margin-top:16px">미디어 전환 설정</div>
-    <div style="display:flex;align-items:center;gap:12px;padding:4px 0">
-      <span style="font-size:12px;color:rgba(245,240,232,0.45)">자동 전환 (초)</span>
-      <input type="number" class="form-input" id="slide-interval" value="0" min="0" max="300"
-        style="width:80px;padding:8px 12px" placeholder="0=끄기" onchange="updateSlideInterval()">
-    </div>
-    <div class="section-label" style="margin-top:16px">모두 초기화</div>
-    <button class="add-btn" onclick="clearAll()" style="background:rgba(192,57,43,0.1);border-color:rgba(192,57,43,0.3);color:#e74c3c">모든 데이터 삭제</button>
-  </div>
-</div>
-
-<!-- Player -->
 <div id="player">
-  <div id="track-info">
-    <div id="track-title">—</div>
-    <div id="track-artist">음악을 추가해주세요</div>
+
+  <div>
+    <div id="track-title">Loading...</div>
+    <div id="track-artist"></div>
   </div>
-  <div id="progress-row">
-    <span class="time-label" id="time-current">0:00</span>
-    <div id="progress-wrap" onclick="seek(event)">
-      <div id="progress-bar"></div>
-    </div>
-    <span class="time-label" id="time-total">0:00</span>
+
+  <div id="progress-wrap">
+    <div id="progress"></div>
   </div>
+
   <div id="controls">
-    <button class="ctrl-btn" id="shuffle-btn" title="셔플" onclick="toggleShuffle()">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/>
-        <polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/>
-      </svg>
+
+    <button onclick="prevTrack()">
+      ◀
     </button>
-    <button class="ctrl-btn" title="이전곡" onclick="prevTrack()">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-        <polygon points="19,20 9,12 19,4"/><rect x="5" y="4" width="2" height="16"/>
-      </svg>
+
+    <button id="play-btn" onclick="togglePlay()">
+      ▶
     </button>
-    <button class="ctrl-btn play-btn" id="play-btn" title="재생/일시정지" onclick="togglePlay()">
-      <svg id="play-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-        <polygon points="5,3 19,12 5,21"/>
-      </svg>
+
+    <button onclick="nextTrack()">
+      ▶
     </button>
-    <button class="ctrl-btn" title="다음곡" onclick="nextTrack()">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-        <polygon points="5,4 15,12 5,20"/><rect x="17" y="4" width="2" height="16"/>
-      </svg>
-    </button>
-    <button class="ctrl-btn" id="repeat-btn" title="반복" onclick="toggleRepeat()">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/>
-        <polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
-      </svg>
-    </button>
-    <button class="ctrl-btn" id="playlist-toggle" title="플레이리스트" onclick="togglePlaylistOverlay()">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
-        <line x1="8" y1="18" x2="21" y2="18"/>
-        <circle cx="3" cy="6" r="1" fill="currentColor"/><circle cx="3" cy="12" r="1" fill="currentColor"/>
-        <circle cx="3" cy="18" r="1" fill="currentColor"/>
-      </svg>
-    </button>
-    <div id="vol-wrap">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="opacity:.4">
-        <path d="M11 5L6 9H2v6h4l5 4V5z"/>
-        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" stroke="currentColor" stroke-width="1.5" fill="none"/>
-      </svg>
-      <input type="range" id="vol-slider" min="0" max="1" step="0.01" value="0.8" oninput="setVolume(this.value)">
-    </div>
-    <button class="ctrl-btn" onclick="toggleFullscreenMode()" title="전체화면 (F)">
-      <svg id="fs-icon-ctrl" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
-      </svg>
-    </button>
+
   </div>
+
 </div>
 
-<!-- Playlist Overlay (visitor) -->
-<div id="playlist-overlay">
-  <div class="overlay-header">플레이리스트</div>
-  <div class="overlay-list" id="overlay-list"></div>
-</div>
-
-<!-- Fullscreen button -->
-<button id="fullscreen-btn" onclick="toggleFullscreenMode()" title="전체화면">
-  <svg id="fs-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
-  </svg>
-</button>
-
-<!-- ESC hint -->
-<div id="esc-hint">ESC · 전체화면 종료</div>
-
-<!-- Hidden Audio -->
-<audio id="audio-player"></audio>
-
-<!-- Empty State -->
-<div class="empty-state" id="empty-state">
-  <h1>My Gallery</h1>
-  <p>관리자가 미디어와 음악을 추가하면<br>여기에 표시됩니다</p>
-  <p style="margin-top:20px;font-size:10px;opacity:0.3">관리자라면 상단 버튼을 눌러 로그인하세요</p>
-</div>
+<audio id="audio"></audio>
 
 <script>
-// ══════════════════════════════════════════════
-//  STATE
-// ══════════════════════════════════════════════
-let ADMIN_PASSWORD = 'gallery2024';
-let isAdmin = false;
-let mediaList = [];       // {name, type:'image'|'video', url, thumb}
-let playlist = [];        // {title, artist, url, duration}
-let currentMediaIdx = 0;
-let currentTrackIdx = 0;
+
+/* ───────────────────────── */
+/* FIXED GALLERY */
+/* ───────────────────────── */
+
+const media = [
+
+{
+  name:"IMG_1435",
+  url:"https://res.cloudinary.com/dmtdmife2/image/upload/q_auto/f_auto/v1779958917/IMG_1435_wnx0f3.jpg"
+},
+
+{
+  name:"IMG_1441",
+  url:"https://res.cloudinary.com/dmtdmife2/image/upload/q_auto/f_auto/v1779958937/IMG_1441_zqhfzi.jpg"
+},
+
+{
+  name:"IMG_1543",
+  url:"https://res.cloudinary.com/dmtdmife2/image/upload/q_auto/f_auto/v1779959004/IMG_1543_wqfjyg.jpg"
+}
+
+];
+
+
+/* ───────────────────────── */
+/* PLAYLIST */
+/* ───────────────────────── */
+
+const playlist = [
+
+{
+  title:"None Of My Business",
+  artist:"Tinashe",
+  url:"https://res.cloudinary.com/dmtdmife2/video/upload/q_auto/f_auto/v1779955584/None_Of_My_Business_fzfqru.mp3"
+},
+
+{
+  title:"Focus",
+  artist:"Allie X",
+  url:"https://res.cloudinary.com/dmtdmife2/video/upload/q_auto/f_auto/v1779955476/Allie_X_Focus_Official_Lyric_Video_ytgrpn.mp3"
+},
+
+{
+  title:"Stay",
+  artist:"BANKS",
+  url:"https://res.cloudinary.com/dmtdmife2/video/upload/q_auto/f_auto/v1779955476/BANKS_-_Stay_Official_Audio_rfja4v.mp3"
+}
+
+];
+
+let currentMedia = 0;
+let currentTrack = 0;
 let isPlaying = false;
-let isShuffle = false;
-let repeatMode = 0;       // 0=off, 1=all, 2=one
-let shuffleOrder = [];
-let slideTimer = null;
-let slideInterval = 0;    // seconds, 0=off
 
-const audio = document.getElementById('audio-player');
-const bgImg = document.getElementById('bg-img');
-const bgVideo = document.getElementById('bg-video');
+const bg = document.getElementById("bg");
+const audio = document.getElementById("audio");
 
-// Load from localStorage
-function loadState() {
-  try {
-    const m = localStorage.getItem('gallery_media');
-    const p = localStorage.getItem('gallery_playlist');
-    const pw = localStorage.getItem('gallery_pw');
-    const si = localStorage.getItem('gallery_slide_interval');
-    if (m) mediaList = JSON.parse(m);
-    if (p) playlist = JSON.parse(p);
-    if (pw) ADMIN_PASSWORD = pw;
-    if (si) slideInterval = parseInt(si);
-    document.getElementById('slide-interval').value = slideInterval;
-  } catch(e) {}
-}
+/* ───────────────────────── */
+/* RENDER BACKGROUND */
+/* ───────────────────────── */
 
-function saveState() {
-  try {
-    localStorage.setItem('gallery_media', JSON.stringify(mediaList));
-    localStorage.setItem('gallery_playlist', JSON.stringify(playlist));
-  } catch(e) {}
-}
+function renderBackground(){
 
-// ══════════════════════════════════════════════
-//  PASSWORD / ADMIN
-// ══════════════════════════════════════════════
-function openPwModal() {
-  if (isAdmin) { openAdminPanel(); return; }
-  document.getElementById('pw-modal').classList.add('open');
-  document.getElementById('pw-input').focus();
-}
-function closePwModal() {
-  document.getElementById('pw-modal').classList.remove('open');
-  document.getElementById('pw-input').value = '';
-  document.getElementById('pw-error').style.display = 'none';
-}
-function checkPw() {
-  const val = document.getElementById('pw-input').value;
-  if (val === ADMIN_PASSWORD) {
-    isAdmin = true;
-    closePwModal();
-    openAdminPanel();
-    document.getElementById('admin-toggle').textContent = '관리자 패널 ✦';
-    document.getElementById('admin-toggle').style.color = 'var(--accent)';
-  } else {
-    document.getElementById('pw-error').style.display = 'block';
-    document.getElementById('pw-input').value = '';
-  }
-}
-function openAdminPanel() {
-  document.getElementById('admin-panel').classList.add('open');
-  renderAdminMedia();
-  renderAdminPlaylist();
-}
-function closeAdminPanel() {
-  document.getElementById('admin-panel').classList.remove('open');
-}
-function changePw() {
-  const a = document.getElementById('new-pw').value;
-  const b = document.getElementById('new-pw2').value;
-  if (!a) return;
-  if (a !== b) { alert('비밀번호가 일치하지 않습니다'); return; }
-  ADMIN_PASSWORD = a;
-  localStorage.setItem('gallery_pw', a);
-  document.getElementById('new-pw').value = '';
-  document.getElementById('new-pw2').value = '';
-  alert('비밀번호가 변경되었습니다');
-}
-function clearAll() {
-  if (!confirm('모든 미디어와 음악을 삭제하시겠습니까?')) return;
-  mediaList = []; playlist = [];
-  currentMediaIdx = 0; currentTrackIdx = 0;
-  audio.pause(); audio.src = '';
-  saveState();
-  renderAll();
-  closeAdminPanel();
-}
+  bg.innerHTML = '';
 
-// ══════════════════════════════════════════════
-//  TABS
-// ══════════════════════════════════════════════
-function switchTab(name) {
-  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', ['media','music','settings'][i]===name));
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-  document.getElementById('tab-'+name).classList.add('active');
-}
+  media.forEach((m,i)=>{
 
-// ══════════════════════════════════════════════
-//  MEDIA UPLOAD
-// ══════════════════════════════════════════════
-function handleMediaUpload(files) {
-  Array.from(files).forEach(file => {
-    const reader = new FileReader();
-    reader.onload = e => {
-      const url = e.target.result;
-      const type = file.type.startsWith('video') ? 'video' : 'image';
-      mediaList.push({ name: file.name, type, url });
-      saveState();
-      renderAll();
-    };
-    reader.readAsDataURL(file);
-  });
-}
+    const img = document.createElement('img');
+    img.src = m.url;
 
-// Drag & drop
-const mediaDrop = document.getElementById('media-drop');
-mediaDrop.addEventListener('dragover', e => { e.preventDefault(); mediaDrop.classList.add('drag'); });
-mediaDrop.addEventListener('dragleave', () => mediaDrop.classList.remove('drag'));
-mediaDrop.addEventListener('drop', e => {
-  e.preventDefault(); mediaDrop.classList.remove('drag');
-  handleMediaUpload(e.dataTransfer.files);
-});
-
-// ══════════════════════════════════════════════
-//  MUSIC UPLOAD
-// ══════════════════════════════════════════════
-function handleMusicUpload(files) {
-  Array.from(files).forEach(file => {
-    const reader = new FileReader();
-    reader.onload = e => {
-      playlist.push({ title: file.name.replace(/\.[^.]+$/, ''), artist: '', url: e.target.result, duration: 0 });
-      saveState();
-      renderAdminPlaylist();
-      renderOverlayList();
-    };
-    reader.readAsDataURL(file);
-  });
-}
-function addMusicByUrl() {
-  const url = document.getElementById('music-url').value.trim();
-  const title = document.getElementById('music-title').value.trim() || url.split('/').pop() || 'Unknown';
-  const artist = document.getElementById('music-artist').value.trim();
-  if (!url) return;
-  playlist.push({ title, artist, url, duration: 0 });
-  saveState();
-  ['music-url','music-title','music-artist'].forEach(id => document.getElementById(id).value = '');
-  renderAdminPlaylist();
-  renderOverlayList();
-}
-
-// ══════════════════════════════════════════════
-//  RENDER
-// ══════════════════════════════════════════════
-function renderAll() {
-  updateEmptyState();
-  updateBackground();
-  renderDots();
-  renderAdminMedia();
-  renderAdminPlaylist();
-  renderOverlayList();
-  updateMediaInfo();
-}
-
-function updateEmptyState() {
-  const empty = mediaList.length === 0 && playlist.length === 0;
-  document.getElementById('empty-state').style.display = empty ? 'flex' : 'none';
-  document.getElementById('media-info').classList.toggle('visible', mediaList.length > 0);
-  document.getElementById('prev-media').style.display = mediaList.length > 1 ? 'flex' : 'none';
-  document.getElementById('next-media').style.display = mediaList.length > 1 ? 'flex' : 'none';
-}
-
-function updateBackground() {
-  if (mediaList.length === 0) {
-    bgImg.classList.remove('active');
-    bgVideo.classList.remove('active');
-    return;
-  }
-  if (currentMediaIdx >= mediaList.length) currentMediaIdx = 0;
-  const item = mediaList[currentMediaIdx];
-  if (item.type === 'image') {
-    bgVideo.classList.remove('active');
-    bgImg.src = item.url;
-    bgImg.onload = () => bgImg.classList.add('active');
-    bgVideo.pause();
-  } else {
-    bgImg.classList.remove('active');
-    bgVideo.src = item.url;
-    bgVideo.classList.add('active');
-    bgVideo.play().catch(()=>{});
-  }
-  updateMediaInfo();
-}
-
-function updateMediaInfo() {
-  const item = mediaList[currentMediaIdx];
-  if (!item) return;
-  document.getElementById('media-index').textContent = `— ${String(currentMediaIdx+1).padStart(2,'0')} / ${String(mediaList.length).padStart(2,'0')}`;
-  document.getElementById('media-title').textContent = item.name;
-}
-
-function renderDots() {
-  const wrap = document.getElementById('media-dots');
-  wrap.innerHTML = '';
-  if (mediaList.length <= 1) return;
-  mediaList.forEach((_, i) => {
-    const d = document.createElement('div');
-    d.className = 'dot' + (i === currentMediaIdx ? ' active' : '');
-    d.onclick = () => { currentMediaIdx = i; updateBackground(); renderDots(); };
-    wrap.appendChild(d);
-  });
-}
-
-function renderAdminMedia() {
-  const list = document.getElementById('admin-media-list');
-  list.innerHTML = mediaList.length === 0
-    ? '<p style="font-size:11px;color:rgba(245,240,232,0.2);text-align:center;padding:16px">업로드된 미디어 없음</p>'
-    : '';
-  mediaList.forEach((item, i) => {
-    const div = document.createElement('div');
-    div.className = 'media-item';
-    const thumb = document.createElement('div');
-    thumb.className = 'media-thumb';
-    if (item.type === 'image') {
-      const img = document.createElement('img');
-      img.src = item.url;
-      thumb.appendChild(img);
-    } else {
-      thumb.textContent = '🎬';
+    if(i===currentMedia){
+      img.classList.add('active');
     }
-    div.innerHTML = `
-      <div class="media-item-info">
-        <div class="media-item-name">${item.name}</div>
-        <div class="media-item-type">${item.type}</div>
-      </div>
-      <div class="item-actions">
-        <button class="item-btn" onclick="setMedia(${i})" title="배경으로 설정">👁</button>
-        <button class="item-btn" onclick="moveMediaUp(${i})" title="위로">↑</button>
-        <button class="item-btn del" onclick="deleteMedia(${i})" title="삭제">✕</button>
-      </div>
-    `;
-    div.prepend(thumb);
-    list.appendChild(div);
+
+    bg.appendChild(img);
+
   });
+
+  const overlay = document.createElement('div');
+  overlay.className='overlay';
+  bg.appendChild(overlay);
+
+  document.getElementById('index').innerText =
+  `${currentMedia+1} / ${media.length}`;
+
+  document.getElementById('photo-name').innerText =
+  media[currentMedia].name;
+
 }
 
-function renderAdminPlaylist() {
-  const list = document.getElementById('admin-playlist');
-  list.innerHTML = playlist.length === 0
-    ? '<p style="font-size:11px;color:rgba(245,240,232,0.2);text-align:center;padding:16px">플레이리스트 없음</p>'
-    : '';
-  playlist.forEach((track, i) => {
-    const div = document.createElement('div');
-    div.className = 'playlist-item' + (i === currentTrackIdx && isPlaying ? ' playing' : '');
-    div.innerHTML = `
-      <span class="track-num">${i === currentTrackIdx && isPlaying ? '▶' : i+1}</span>
-      <div class="track-info-small">
-        <div class="track-name-small">${track.title}</div>
-        <div class="track-dur">${track.artist || '—'}</div>
-      </div>
-      <div class="item-actions">
-        <button class="item-btn" onclick="playTrack(${i})" title="재생">▶</button>
-        <button class="item-btn del" onclick="deleteTrack(${i})" title="삭제">✕</button>
-      </div>
-    `;
-    list.appendChild(div);
-  });
-}
+renderBackground();
 
-function renderOverlayList() {
-  const list = document.getElementById('overlay-list');
-  list.innerHTML = '';
-  if (playlist.length === 0) {
-    list.innerHTML = '<p style="font-size:11px;color:rgba(245,240,232,0.2);text-align:center;padding:16px">플레이리스트 없음</p>';
-    return;
+/* AUTO SLIDE */
+
+setInterval(()=>{
+
+  currentMedia++;
+
+  if(currentMedia>=media.length){
+    currentMedia=0;
   }
-  playlist.forEach((track, i) => {
+
+  renderBackground();
+
+},8000);
+
+/* ───────────────────────── */
+/* PLAYLIST */
+/* ───────────────────────── */
+
+function renderPlaylist(){
+
+  const wrap = document.getElementById('playlist-items');
+
+  wrap.innerHTML='';
+
+  playlist.forEach((track,i)=>{
+
     const div = document.createElement('div');
-    div.className = 'overlay-track' + (i === currentTrackIdx ? ' playing' : '');
-    div.innerHTML = `
-      <span class="overlay-track-num">${i === currentTrackIdx ? '▶' : i+1}</span>
-      <span class="overlay-track-name">${track.title}${track.artist ? ' — '+track.artist : ''}</span>
+
+    div.className='track';
+
+    if(i===currentTrack){
+      div.classList.add('active');
+    }
+
+    div.innerHTML=`
+      <div class="track-title">${track.title}</div>
+      <div class="track-artist">${track.artist}</div>
     `;
-    div.onclick = () => { playTrack(i); };
-    list.appendChild(div);
+
+    div.onclick=()=>{
+
+      currentTrack=i;
+      loadTrack();
+      playAudio();
+
+    };
+
+    wrap.appendChild(div);
+
   });
+
 }
 
-// ══════════════════════════════════════════════
-//  MEDIA CONTROL
-// ══════════════════════════════════════════════
-function changeMedia(dir) {
-  if (mediaList.length === 0) return;
-  currentMediaIdx = (currentMediaIdx + dir + mediaList.length) % mediaList.length;
-  updateBackground();
-  renderDots();
-}
-function setMedia(i) {
-  currentMediaIdx = i;
-  updateBackground();
-  renderDots();
-}
-function deleteMedia(i) {
-  mediaList.splice(i, 1);
-  if (currentMediaIdx >= mediaList.length) currentMediaIdx = Math.max(0, mediaList.length - 1);
-  saveState();
-  renderAll();
-}
-function moveMediaUp(i) {
-  if (i === 0) return;
-  [mediaList[i-1], mediaList[i]] = [mediaList[i], mediaList[i-1]];
-  saveState();
-  renderAdminMedia();
-}
+renderPlaylist();
 
-// Slideshow
-function updateSlideInterval() {
-  slideInterval = parseInt(document.getElementById('slide-interval').value) || 0;
-  localStorage.setItem('gallery_slide_interval', slideInterval);
-  clearInterval(slideTimer);
-  if (slideInterval > 0) {
-    slideTimer = setInterval(() => changeMedia(1), slideInterval * 1000);
-  }
-}
+/* ───────────────────────── */
+/* AUDIO */
+/* ───────────────────────── */
 
-// ══════════════════════════════════════════════
-//  MUSIC CONTROL
-// ══════════════════════════════════════════════
-function playTrack(i) {
-  if (playlist.length === 0) return;
-  currentTrackIdx = i;
-  const track = playlist[i];
+function loadTrack(){
+
+  const track = playlist[currentTrack];
+
   audio.src = track.url;
-  audio.play().then(() => {
-    isPlaying = true;
-    updatePlayBtn();
-    updateTrackInfo();
-    renderAdminPlaylist();
-    renderOverlayList();
-  }).catch(e => console.log('Play error:', e));
+
+  document.getElementById('track-title').innerText =
+  track.title;
+
+  document.getElementById('track-artist').innerText =
+  track.artist;
+
+  renderPlaylist();
+
 }
 
-function togglePlay() {
-  if (playlist.length === 0) return;
-  if (!audio.src || audio.src === window.location.href) {
-    playTrack(currentTrackIdx);
-    return;
-  }
-  if (isPlaying) {
-    audio.pause();
-    isPlaying = false;
-  } else {
-    audio.play();
-    isPlaying = true;
-  }
-  updatePlayBtn();
+loadTrack();
+
+function playAudio(){
+
+  audio.play();
+
+  isPlaying=true;
+
+  document.getElementById('play-btn').innerText='❚❚';
+
 }
 
-function prevTrack() {
-  if (playlist.length === 0) return;
-  if (audio.currentTime > 3) { audio.currentTime = 0; return; }
-  if (isShuffle) {
-    const idx = shuffleOrder.indexOf(currentTrackIdx);
-    const prev = idx > 0 ? shuffleOrder[idx-1] : shuffleOrder[shuffleOrder.length-1];
-    playTrack(prev);
-  } else {
-    playTrack((currentTrackIdx - 1 + playlist.length) % playlist.length);
-  }
+function pauseAudio(){
+
+  audio.pause();
+
+  isPlaying=false;
+
+  document.getElementById('play-btn').innerText='▶';
+
 }
 
-function nextTrack(auto=false) {
-  if (playlist.length === 0) return;
-  if (repeatMode === 2 && auto) { audio.currentTime = 0; audio.play(); return; }
-  if (isShuffle) {
-    let idx = shuffleOrder.indexOf(currentTrackIdx);
-    idx = (idx + 1) % shuffleOrder.length;
-    playTrack(shuffleOrder[idx]);
-  } else {
-    const next = (currentTrackIdx + 1) % playlist.length;
-    if (next === 0 && repeatMode === 0 && auto) { audio.pause(); isPlaying = false; updatePlayBtn(); return; }
-    playTrack(next);
-  }
-}
+function togglePlay(){
 
-function deleteTrack(i) {
-  playlist.splice(i, 1);
-  if (currentTrackIdx >= playlist.length) currentTrackIdx = Math.max(0, playlist.length-1);
-  if (playlist.length === 0) { audio.pause(); isPlaying = false; updatePlayBtn(); updateTrackInfo(); }
-  saveState();
-  renderAdminPlaylist();
-  renderOverlayList();
-}
-
-function toggleShuffle() {
-  isShuffle = !isShuffle;
-  document.getElementById('shuffle-btn').classList.toggle('active-mode', isShuffle);
-  if (isShuffle) buildShuffleOrder();
-}
-function buildShuffleOrder() {
-  shuffleOrder = [...Array(playlist.length).keys()];
-  for (let i = shuffleOrder.length-1; i > 0; i--) {
-    const j = Math.floor(Math.random()*(i+1));
-    [shuffleOrder[i], shuffleOrder[j]] = [shuffleOrder[j], shuffleOrder[i]];
-  }
-}
-function toggleRepeat() {
-  repeatMode = (repeatMode + 1) % 3;
-  const btn = document.getElementById('repeat-btn');
-  btn.classList.toggle('active-mode', repeatMode > 0);
-  btn.title = ['반복 없음','전체 반복','한곡 반복'][repeatMode];
-}
-
-function updatePlayBtn() {
-  document.getElementById('play-icon').innerHTML = isPlaying
-    ? '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>'
-    : '<polygon points="5,3 19,12 5,21"/>';
-}
-function updateTrackInfo() {
-  const track = playlist[currentTrackIdx];
-  if (!track) {
-    document.getElementById('track-title').textContent = '—';
-    document.getElementById('track-artist').textContent = '음악을 추가해주세요';
-    return;
-  }
-  document.getElementById('track-title').textContent = track.title;
-  document.getElementById('track-artist').textContent = track.artist || '—';
-}
-
-function seek(e) {
-  if (!audio.duration) return;
-  const rect = e.currentTarget.getBoundingClientRect();
-  const ratio = (e.clientX - rect.left) / rect.width;
-  audio.currentTime = ratio * audio.duration;
-}
-function setVolume(v) { audio.volume = parseFloat(v); }
-
-function formatTime(s) {
-  if (isNaN(s)) return '0:00';
-  const m = Math.floor(s/60);
-  return m + ':' + String(Math.floor(s%60)).padStart(2,'0');
-}
-
-// Audio events
-audio.addEventListener('timeupdate', () => {
-  if (!audio.duration) return;
-  const pct = (audio.currentTime / audio.duration) * 100;
-  document.getElementById('progress-bar').style.width = pct + '%';
-  document.getElementById('time-current').textContent = formatTime(audio.currentTime);
-});
-audio.addEventListener('loadedmetadata', () => {
-  document.getElementById('time-total').textContent = formatTime(audio.duration);
-  if (playlist[currentTrackIdx]) playlist[currentTrackIdx].duration = audio.duration;
-});
-audio.addEventListener('ended', () => nextTrack(true));
-audio.addEventListener('play', () => { isPlaying = true; updatePlayBtn(); });
-audio.addEventListener('pause', () => { isPlaying = false; updatePlayBtn(); });
-audio.volume = 0.8;
-
-// Playlist overlay toggle
-function togglePlaylistOverlay() {
-  const el = document.getElementById('playlist-overlay');
-  const btn = document.getElementById('playlist-toggle');
-  el.classList.toggle('open');
-  btn.classList.toggle('active');
-}
-
-// ══════════════════════════════════════════════
-//  FULLSCREEN MODE
-// ══════════════════════════════════════════════
-let isFullscreenMode = false;
-let cursorTimer = null;
-
-function toggleFullscreenMode() {
-  isFullscreenMode = !isFullscreenMode;
-  document.body.classList.toggle('fullscreen-mode', isFullscreenMode);
-
-  const fsPath = isFullscreenMode
-    ? '<path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>'
-    : '<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>';
-  document.getElementById('fs-icon').innerHTML = fsPath;
-  if (document.getElementById('fs-icon-ctrl')) document.getElementById('fs-icon-ctrl').innerHTML = fsPath;
-
-  if (isFullscreenMode) {
-    // 브라우저 전체화면 요청
-    document.documentElement.requestFullscreen?.().catch(()=>{});
-
-    // 모바일: 가로 방향 강제 전환
-    if (screen.orientation && screen.orientation.lock) {
-      screen.orientation.lock('landscape').catch(() => {});
-    } else if (window.screen && window.screen.lockOrientation) {
-      window.screen.lockOrientation('landscape');
-    }
-
-    // 모바일 터치 시 컨트롤 표시
-    document.addEventListener('mousemove', onCursorMove);
-    document.addEventListener('touchstart', onCursorMove, { passive: true });
-
-    document.body.classList.add('cursor-active');
-    cursorTimer = setTimeout(() => document.body.classList.remove('cursor-active'), 2500);
-  } else {
-    exitFullscreenMode();
-  }
-}
-
-function exitFullscreenMode() {
-  isFullscreenMode = false;
-  document.body.classList.remove('fullscreen-mode', 'cursor-active');
-  const normalPath = '<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>';
-  document.getElementById('fs-icon').innerHTML = normalPath;
-  if (document.getElementById('fs-icon-ctrl')) document.getElementById('fs-icon-ctrl').innerHTML = normalPath;
-  if (document.fullscreenElement) document.exitFullscreen?.().catch(()=>{});
-
-  // 모바일: 방향 잠금 해제
-  if (screen.orientation && screen.orientation.unlock) {
-    screen.orientation.unlock();
-  } else if (window.screen && window.screen.unlockOrientation) {
-    window.screen.unlockOrientation();
+  if(isPlaying){
+    pauseAudio();
+  }else{
+    playAudio();
   }
 
-  document.removeEventListener('mousemove', onCursorMove);
-  document.removeEventListener('touchstart', onCursorMove);
-  clearTimeout(cursorTimer);
 }
 
-function onCursorMove() {
-  document.body.classList.add('cursor-active');
-  clearTimeout(cursorTimer);
-  cursorTimer = setTimeout(() => {
-    if (isFullscreenMode) document.body.classList.remove('cursor-active');
-  }, 2500);
+function nextTrack(){
+
+  currentTrack++;
+
+  if(currentTrack>=playlist.length){
+    currentTrack=0;
+  }
+
+  loadTrack();
+
+  playAudio();
+
 }
 
-document.addEventListener('fullscreenchange', () => {
-  if (!document.fullscreenElement && isFullscreenMode) exitFullscreenMode();
+function prevTrack(){
+
+  currentTrack--;
+
+  if(currentTrack<0){
+    currentTrack=playlist.length-1;
+  }
+
+  loadTrack();
+
+  playAudio();
+
+}
+
+/* AUTO NEXT */
+
+audio.addEventListener('ended',nextTrack);
+
+/* PROGRESS */
+
+audio.addEventListener('timeupdate',()=>{
+
+  const progress =
+  (audio.currentTime / audio.duration) * 100;
+
+  document.getElementById('progress').style.width =
+  progress + '%';
+
 });
 
-// ══════════════════════════════════════════════
-//  KEYBOARD SHORTCUTS
-// ══════════════════════════════════════════════
-document.addEventListener('keydown', e => {
-  if (['INPUT','TEXTAREA'].includes(e.target.tagName)) return;
-  if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
-  if (e.code === 'KeyF') toggleFullscreenMode();
-  if (e.code === 'Escape' && isFullscreenMode) exitFullscreenMode();
-  if (e.code === 'ArrowRight' && !e.shiftKey) nextTrack();
-  if (e.code === 'ArrowLeft' && !e.shiftKey) prevTrack();
-  if (e.code === 'ArrowRight' && e.shiftKey) changeMedia(1);
-  if (e.code === 'ArrowLeft' && e.shiftKey) changeMedia(-1);
+document.getElementById('progress-wrap')
+.addEventListener('click',(e)=>{
+
+  const rect =
+  e.currentTarget.getBoundingClientRect();
+
+  const ratio =
+  (e.clientX - rect.left) / rect.width;
+
+  audio.currentTime =
+  ratio * audio.duration;
+
 });
 
+/* MOBILE AUTOPLAY FIX */
 
-// ══════════════════════════════════════════════
-//  TOUCH / SWIPE (모바일)
-// ══════════════════════════════════════════════
-let touchStartX = 0, touchStartY = 0, touchStartTime = 0;
+document.body.addEventListener('click',()=>{
 
-document.addEventListener('touchstart', e => {
-  touchStartX = e.touches[0].clientX;
-  touchStartY = e.touches[0].clientY;
-  touchStartTime = Date.now();
-}, { passive: true });
+  if(!isPlaying){
 
-document.addEventListener('touchend', e => {
-  const dx = e.changedTouches[0].clientX - touchStartX;
-  const dy = e.changedTouches[0].clientY - touchStartY;
-  const dt = Date.now() - touchStartTime;
-  // 빠른 수평 스와이프 (200ms 이내, 수평 60px 이상, 수직 40px 미만)
-  if (dt < 300 && Math.abs(dx) > 60 && Math.abs(dy) < 40) {
-    if (dx < 0) nextTrack();   // 왼쪽 → 다음곡
-    else prevTrack();           // 오른쪽 → 이전곡
+    playAudio();
+
   }
-}, { passive: true });
 
-// ══════════════════════════════════════════════
-//  INIT
-// ══════════════════════════════════════════════
-loadState();
-renderAll();
-if (slideInterval > 0) {
-  slideTimer = setInterval(() => changeMedia(1), slideInterval * 1000);
-}
-if (playlist.length > 0) updateTrackInfo();
+},{once:true});
+
 </script>
 </body>
 </html>
+```
