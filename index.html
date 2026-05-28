@@ -1,280 +1,364 @@
-```html
 <!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>My Gallery</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=Outfit:wght@200;300;400&display=swap" rel="stylesheet">
+<title>johns-gallery</title>
 
 <style>
+
 *{
   margin:0;
   padding:0;
   box-sizing:border-box;
 }
 
-html,body{
+html,
+body{
   width:100%;
   height:100%;
   overflow:hidden;
   background:black;
-  font-family:'Outfit',sans-serif;
-  color:white;
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
 }
 
-body{
-  cursor:default;
-}
-
-/* BACKGROUND */
-#bg{
+/* 배경 슬라이드 */
+.background{
   position:fixed;
   inset:0;
-  z-index:0;
-}
-
-#bg img{
   width:100%;
   height:100%;
-  object-fit:cover;
-  position:absolute;
-  inset:0;
-  opacity:0;
-  transition:opacity 1.5s ease;
+  z-index:1;
 }
 
-#bg img.active{
+.slide{
+  position:absolute;
+  inset:0;
+
+  width:100%;
+  height:100%;
+
+  background-size:cover;
+  background-position:center;
+
+  opacity:0;
+
+  transition:opacity 2.5s ease;
+}
+
+.slide.active{
   opacity:1;
 }
 
+/* 오버레이 */
 .overlay{
-  position:absolute;
-  inset:0;
+  position:relative;
+  z-index:5;
+
+  width:100%;
+  height:100%;
+
   background:
   linear-gradient(
     to top,
-    rgba(0,0,0,0.88) 0%,
-    rgba(0,0,0,0.25) 45%,
-    rgba(0,0,0,0.08) 100%
+    rgba(0,0,0,0.55),
+    rgba(0,0,0,0.15),
+    rgba(0,0,0,0.45)
   );
-}
 
-/* GRAIN */
-.grain{
-  position:fixed;
-  inset:0;
-  pointer-events:none;
-  opacity:0.03;
-  z-index:2;
-  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
-/* TOP INFO */
-#top{
-  position:fixed;
-  top:32px;
-  left:32px;
-  z-index:10;
-}
-
-#index{
-  font-size:12px;
-  letter-spacing:2px;
-  opacity:.45;
-  margin-bottom:6px;
-}
-
-#photo-name{
-  font-size:14px;
-  font-weight:300;
-}
-
-/* PLAYER */
-#player{
-  position:fixed;
-  left:0;
-  right:0;
-  bottom:0;
-  z-index:10;
-  padding:32px;
   display:flex;
-  flex-direction:column;
-  gap:16px;
+  align-items:flex-end;
+
+  padding:60px 40px;
 }
 
-/* TRACK */
-#track-title{
-  font-family:'Cormorant Garamond',serif;
-  font-size:38px;
+/* 음악 정보 */
+.music-info{
+  color:white;
+  max-width:90%;
+}
+
+.song-title{
+  font-size:68px;
   font-weight:300;
-  margin-bottom:4px;
+  line-height:1;
+  margin-bottom:14px;
+
+  letter-spacing:-2px;
 }
 
-#track-artist{
-  font-size:12px;
-  letter-spacing:2px;
-  opacity:.5;
-  text-transform:uppercase;
+.artist{
+  font-size:28px;
+  letter-spacing:8px;
+  opacity:0.75;
 }
 
-/* PROGRESS */
-#progress-wrap{
-  width:100%;
-  height:2px;
-  background:rgba(255,255,255,0.15);
-  cursor:pointer;
-}
+/* 플레이어 */
+.player{
+  position:fixed;
+  bottom:40px;
+  left:50%;
+  transform:translateX(-50%);
 
-#progress{
-  width:0%;
-  height:100%;
-  background:white;
-}
+  z-index:20;
 
-/* CONTROLS */
-#controls{
   display:flex;
   align-items:center;
   gap:24px;
+
+  padding:18px 28px;
+
+  border-radius:999px;
+
+  background:rgba(20,20,20,0.38);
+  backdrop-filter:blur(30px);
 }
 
-button{
-  background:none;
+/* 버튼 */
+.control-btn{
+  width:58px;
+  height:58px;
+
   border:none;
-  color:white;
-  cursor:pointer;
-  opacity:.7;
-  transition:.2s;
-}
-
-button:hover{
-  opacity:1;
-}
-
-#play-btn{
-  width:54px;
-  height:54px;
   border-radius:50%;
-  border:1px solid rgba(255,255,255,0.2);
-  display:flex;
-  align-items:center;
-  justify-content:center;
+
+  background:rgba(255,255,255,0.08);
+
+  color:white;
+  font-size:20px;
+
+  cursor:pointer;
+
+  transition:0.25s ease;
 }
 
-#playlist{
-  position:fixed;
-  right:32px;
-  bottom:140px;
-  width:280px;
-  background:rgba(0,0,0,0.55);
+.control-btn:hover{
+  background:rgba(255,255,255,0.16);
+}
+
+.control-btn:active{
+  transform:scale(0.92);
+}
+
+/* 플레이리스트 버튼 */
+.playlist-toggle{
+  position:absolute;
+  top:32px;
+  right:24px;
+  z-index:30;
+
+  width:50px;
+  height:50px;
+
+  border:none;
+  border-radius:50%;
+
+  background:rgba(15,15,15,0.45);
   backdrop-filter:blur(20px);
-  border:1px solid rgba(255,255,255,0.08);
-  border-radius:18px;
-  padding:18px;
-  z-index:20;
+
+  color:white;
+  font-size:20px;
+
+  cursor:pointer;
+
+  transition:0.25s ease;
 }
 
-#playlist h3{
-  font-size:11px;
-  letter-spacing:3px;
-  margin-bottom:14px;
-  opacity:.4;
-  text-transform:uppercase;
+.playlist-toggle:hover{
+  background:rgba(255,255,255,0.12);
+}
+
+/* 플레이리스트 패널 */
+.playlist-panel{
+  position:absolute;
+  top:95px;
+  right:24px;
+
+  width:320px;
+  max-width:calc(100vw - 48px);
+
+  padding:22px;
+
+  border-radius:28px;
+
+  background:rgba(20,20,20,0.38);
+  backdrop-filter:blur(35px);
+
+  z-index:25;
+
+  opacity:0;
+  visibility:hidden;
+  transform:translateY(10px);
+
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s ease,
+    visibility 0.35s;
+}
+
+.playlist-panel.show{
+  opacity:1;
+  visibility:visible;
+  transform:translateY(0);
+}
+
+.playlist-title{
+  color:rgba(255,255,255,0.55);
+  font-size:13px;
+  letter-spacing:6px;
+  margin-bottom:18px;
 }
 
 .track{
-  padding:10px;
-  border-radius:10px;
-  cursor:pointer;
-  transition:.2s;
-}
+  padding:16px 18px;
+  border-radius:18px;
+  margin-bottom:10px;
 
-.track:hover{
-  background:rgba(255,255,255,0.06);
+  cursor:pointer;
+
+  transition:0.25s ease;
 }
 
 .track.active{
-  background:rgba(255,255,255,0.1);
+  background:rgba(255,255,255,0.12);
 }
 
-.track-title{
-  font-size:13px;
+.track:hover{
+  background:rgba(255,255,255,0.08);
+}
+
+.track-name{
+  color:white;
+  font-size:18px;
+  margin-bottom:4px;
 }
 
 .track-artist{
-  font-size:10px;
-  opacity:.4;
-  margin-top:2px;
+  color:rgba(255,255,255,0.5);
+  font-size:15px;
 }
 
-audio{
-  display:none;
-}
-
+/* 모바일 */
 @media(max-width:768px){
 
-  #player{
+  .overlay{
+    padding:40px 24px 140px;
+  }
+
+  .song-title{
+    font-size:52px;
+  }
+
+  .artist{
+    font-size:22px;
+    letter-spacing:5px;
+  }
+
+  .player{
+    bottom:26px;
+    gap:16px;
+    padding:14px 20px;
+  }
+
+  .control-btn{
+    width:52px;
+    height:52px;
+    font-size:18px;
+  }
+
+  .playlist-toggle{
+    top:24px;
+    right:18px;
+
+    width:44px;
+    height:44px;
+  }
+
+  .playlist-panel{
+    top:82px;
+    right:18px;
+
+    width:290px;
     padding:20px;
   }
 
-  #track-title{
-    font-size:28px;
-  }
-
-  #playlist{
-    left:20px;
-    right:20px;
-    width:auto;
-    bottom:150px;
-  }
-
 }
+
 </style>
 </head>
+
 <body>
 
-<div id="bg"></div>
-<div class="grain"></div>
+<!-- 배경 이미지 -->
+<div class="background">
 
-<div id="top">
-  <div id="index"></div>
-  <div id="photo-name"></div>
+  <div class="slide active"
+    style="background-image:url('https://res.cloudinary.com/dmtdmife2/image/upload/q_auto/f_auto/v1779958917/IMG_1435_wnx0f3.jpg')">
+  </div>
+
 </div>
 
-<div id="playlist">
-  <h3>Playlist</h3>
-  <div id="playlist-items"></div>
+<!-- 플레이리스트 버튼 -->
+<button class="playlist-toggle" id="playlistBtn">
+  ♫
+</button>
+
+<!-- 플레이리스트 -->
+<div class="playlist-panel" id="playlistPanel">
+
+  <div class="playlist-title">
+    PLAYLIST
+  </div>
+
+  <div class="track active" data-index="0">
+    <div class="track-name">None Of My Business</div>
+    <div class="track-artist">Tinashe</div>
+  </div>
+
+  <div class="track" data-index="1">
+    <div class="track-name">Focus</div>
+    <div class="track-artist">Allie X</div>
+  </div>
+
+  <div class="track" data-index="2">
+    <div class="track-name">Stay</div>
+    <div class="track-artist">BANKS</div>
+  </div>
+
 </div>
 
-<div id="player">
+<!-- 메인 UI -->
+<div class="overlay">
 
-  <div>
-    <div id="track-title">Loading...</div>
-    <div id="track-artist"></div>
-  </div>
+  <div class="music-info">
 
-  <div id="progress-wrap">
-    <div id="progress"></div>
-  </div>
+    <div class="song-title" id="songTitle">
+      None Of My Business
+    </div>
 
-  <div id="controls">
-
-    <button onclick="prevTrack()">
-      ◀
-    </button>
-
-    <button id="play-btn" onclick="togglePlay()">
-      ▶
-    </button>
-
-    <button onclick="nextTrack()">
-      ▶
-    </button>
+    <div class="artist" id="artistName">
+      TINASHE
+    </div>
 
   </div>
+
+</div>
+
+<!-- 플레이어 -->
+<div class="player">
+
+  <button class="control-btn" id="prevBtn">
+    ‹
+  </button>
+
+  <button class="control-btn" id="playBtn">
+    ▶
+  </button>
+
+  <button class="control-btn" id="nextBtn">
+    ›
+  </button>
 
 </div>
 
@@ -282,266 +366,201 @@ audio{
 
 <script>
 
-/* ───────────────────────── */
-/* FIXED GALLERY */
-/* ───────────────────────── */
-
-const media = [
-
-{
-  name:"IMG_1435",
-  url:"https://res.cloudinary.com/dmtdmife2/image/upload/q_auto/f_auto/v1779958917/IMG_1435_wnx0f3.jpg"
-},
-
-];
-
-
-/* ───────────────────────── */
-/* PLAYLIST */
-/* ───────────────────────── */
-
+/* 음악 리스트 */
 const playlist = [
 
 {
   title:"None Of My Business",
-  artist:"Tinashe",
-  url:"https://res.cloudinary.com/dmtdmife2/video/upload/q_auto/f_auto/v1779955584/None_Of_My_Business_fzfqru.mp3"
+  artist:"TINASHE",
+  src:"https://res.cloudinary.com/dmtdmife2/video/upload/q_auto/f_auto/v1779955584/None_Of_My_Business_fzfqru.mp3"
 },
 
 {
   title:"Focus",
-  artist:"Allie X",
-  url:"https://res.cloudinary.com/dmtdmife2/video/upload/q_auto/f_auto/v1779955476/Allie_X_Focus_Official_Lyric_Video_ytgrpn.mp3"
+  artist:"ALLIE X",
+  src:"https://res.cloudinary.com/dmtdmife2/video/upload/q_auto/f_auto/v1779955476/Allie_X_Focus_Official_Lyric_Video_ytgrpn.mp3"
 },
 
 {
   title:"Stay",
   artist:"BANKS",
-  url:"https://res.cloudinary.com/dmtdmife2/video/upload/q_auto/f_auto/v1779955476/BANKS_-_Stay_Official_Audio_rfja4v.mp3"
+  src:"https://res.cloudinary.com/dmtdmife2/video/upload/q_auto/f_auto/v1779955476/BANKS_-_Stay_Official_Audio_rfja4v.mp3"
 }
 
 ];
 
-let currentMedia = 0;
-let currentTrack = 0;
-let isPlaying = false;
-
-const bg = document.getElementById("bg");
+/* 요소 */
 const audio = document.getElementById("audio");
 
-/* ───────────────────────── */
-/* RENDER BACKGROUND */
-/* ───────────────────────── */
+const playBtn = document.getElementById("playBtn");
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
 
-function renderBackground(){
+const songTitle = document.getElementById("songTitle");
+const artistName = document.getElementById("artistName");
 
-  bg.innerHTML = '';
+const slides = document.querySelectorAll(".slide");
+const tracks = document.querySelectorAll(".track");
 
-  media.forEach((m,i)=>{
+const playlistBtn = document.getElementById("playlistBtn");
+const playlistPanel = document.getElementById("playlistPanel");
 
-    const img = document.createElement('img');
-    img.src = m.url;
+/* 현재 인덱스 */
+let current = 0;
+let isPlaying = false;
 
-    if(i===currentMedia){
-      img.classList.add('active');
-    }
+/* 음악 불러오기 */
+function loadSong(index){
 
-    bg.appendChild(img);
+  audio.src = playlist[index].src;
 
+  songTitle.textContent = playlist[index].title;
+  artistName.textContent = playlist[index].artist;
+
+  tracks.forEach(track=>{
+    track.classList.remove("active");
   });
 
-  const overlay = document.createElement('div');
-  overlay.className='overlay';
-  bg.appendChild(overlay);
-
-  document.getElementById('index').innerText =
-  `${currentMedia+1} / ${media.length}`;
-
-  document.getElementById('photo-name').innerText =
-  media[currentMedia].name;
+  tracks[index].classList.add("active");
 
 }
 
-renderBackground();
+/* 배경 변경 */
+function changeBackground(index){
 
-/* AUTO SLIDE */
-
-setInterval(()=>{
-
-  currentMedia++;
-
-  if(currentMedia>=media.length){
-    currentMedia=0;
-  }
-
-  renderBackground();
-
-},8000);
-
-/* ───────────────────────── */
-/* PLAYLIST */
-/* ───────────────────────── */
-
-function renderPlaylist(){
-
-  const wrap = document.getElementById('playlist-items');
-
-  wrap.innerHTML='';
-
-  playlist.forEach((track,i)=>{
-
-    const div = document.createElement('div');
-
-    div.className='track';
-
-    if(i===currentTrack){
-      div.classList.add('active');
-    }
-
-    div.innerHTML=`
-      <div class="track-title">${track.title}</div>
-      <div class="track-artist">${track.artist}</div>
-    `;
-
-    div.onclick=()=>{
-
-      currentTrack=i;
-      loadTrack();
-      playAudio();
-
-    };
-
-    wrap.appendChild(div);
-
+  slides.forEach(slide=>{
+    slide.classList.remove("active");
   });
 
-}
-
-renderPlaylist();
-
-/* ───────────────────────── */
-/* AUDIO */
-/* ───────────────────────── */
-
-function loadTrack(){
-
-  const track = playlist[currentTrack];
-
-  audio.src = track.url;
-
-  document.getElementById('track-title').innerText =
-  track.title;
-
-  document.getElementById('track-artist').innerText =
-  track.artist;
-
-  renderPlaylist();
+  slides[index].classList.add("active");
 
 }
 
-loadTrack();
-
-function playAudio(){
+/* 재생 */
+function playSong(){
 
   audio.play();
+  isPlaying = true;
 
-  isPlaying=true;
-
-  document.getElementById('play-btn').innerText='❚❚';
+  playBtn.innerHTML = "❚❚";
 
 }
 
-function pauseAudio(){
+/* 정지 */
+function pauseSong(){
 
   audio.pause();
+  isPlaying = false;
 
-  isPlaying=false;
-
-  document.getElementById('play-btn').innerText='▶';
+  playBtn.innerHTML = "▶";
 
 }
 
-function togglePlay(){
+/* 플레이 버튼 */
+playBtn.addEventListener("click", ()=>{
 
   if(isPlaying){
-    pauseAudio();
+    pauseSong();
   }else{
-    playAudio();
+    playSong();
   }
-
-}
-
-function nextTrack(){
-
-  currentTrack++;
-
-  if(currentTrack>=playlist.length){
-    currentTrack=0;
-  }
-
-  loadTrack();
-
-  playAudio();
-
-}
-
-function prevTrack(){
-
-  currentTrack--;
-
-  if(currentTrack<0){
-    currentTrack=playlist.length-1;
-  }
-
-  loadTrack();
-
-  playAudio();
-
-}
-
-/* AUTO NEXT */
-
-audio.addEventListener('ended',nextTrack);
-
-/* PROGRESS */
-
-audio.addEventListener('timeupdate',()=>{
-
-  const progress =
-  (audio.currentTime / audio.duration) * 100;
-
-  document.getElementById('progress').style.width =
-  progress + '%';
 
 });
 
-document.getElementById('progress-wrap')
-.addEventListener('click',(e)=>{
+/* 다음곡 */
+function nextSong(){
 
-  const rect =
-  e.currentTarget.getBoundingClientRect();
+  current++;
 
-  const ratio =
-  (e.clientX - rect.left) / rect.width;
+  if(current >= playlist.length){
+    current = 0;
+  }
 
-  audio.currentTime =
-  ratio * audio.duration;
+  loadSong(current);
+  changeBackground(current);
+
+  if(isPlaying){
+    playSong();
+  }
+
+}
+
+/* 이전곡 */
+function prevSong(){
+
+  current--;
+
+  if(current < 0){
+    current = playlist.length - 1;
+  }
+
+  loadSong(current);
+  changeBackground(current);
+
+  if(isPlaying){
+    playSong();
+  }
+
+}
+
+nextBtn.addEventListener("click", nextSong);
+prevBtn.addEventListener("click", prevSong);
+
+/* 음악 종료 시 자동 다음곡 */
+audio.addEventListener("ended", nextSong);
+
+/* 플레이리스트 클릭 */
+tracks.forEach(track=>{
+
+  track.addEventListener("click", ()=>{
+
+    current = Number(track.dataset.index);
+
+    loadSong(current);
+    changeBackground(current);
+
+    playSong();
+
+  });
 
 });
 
-/* MOBILE AUTOPLAY FIX */
+/* 플레이리스트 열기/닫기 */
+playlistBtn.addEventListener("click", ()=>{
 
-document.body.addEventListener('click',()=>{
+  playlistPanel.classList.toggle("show");
 
-  if(!isPlaying){
+});
 
-    playAudio();
+/* 바깥 클릭 시 닫기 */
+document.addEventListener("click",(e)=>{
 
+  if(
+    !playlistPanel.contains(e.target) &&
+    !playlistBtn.contains(e.target)
+  ){
+    playlistPanel.classList.remove("show");
   }
 
-},{once:true});
+});
+
+/* 자동 이미지 전환 */
+setInterval(()=>{
+
+  let next = current + 1;
+
+  if(next >= slides.length){
+    next = 0;
+  }
+
+  changeBackground(next);
+
+},10000);
+
+/* 최초 로드 */
+loadSong(current);
 
 </script>
+
 </body>
 </html>
-```
