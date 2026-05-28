@@ -71,6 +71,8 @@ body{
   align-items:flex-end;
 
   padding:60px 40px;
+
+  transition:opacity 0.35s ease;
 }
 
 /* 음악 정보 */
@@ -113,6 +115,8 @@ body{
 
   background:rgba(20,20,20,0.38);
   backdrop-filter:blur(30px);
+
+  transition:0.35s ease;
 }
 
 /* 버튼 */
@@ -166,6 +170,34 @@ body{
 }
 
 .playlist-toggle:hover{
+  background:rgba(255,255,255,0.12);
+}
+
+/* 전체화면 버튼 */
+.fullscreen-toggle{
+  position:absolute;
+  top:32px;
+  right:86px;
+  z-index:30;
+
+  width:50px;
+  height:50px;
+
+  border:none;
+  border-radius:50%;
+
+  background:rgba(15,15,15,0.45);
+  backdrop-filter:blur(20px);
+
+  color:white;
+  font-size:18px;
+
+  cursor:pointer;
+
+  transition:0.25s ease;
+}
+
+.fullscreen-toggle:hover{
   background:rgba(255,255,255,0.12);
 }
 
@@ -239,6 +271,49 @@ body{
   font-size:15px;
 }
 
+/* 전체화면 상태 */
+.fullscreen-mode .overlay{
+  opacity:0;
+  pointer-events:none;
+}
+
+.fullscreen-mode .player{
+  opacity:0;
+  pointer-events:none;
+}
+
+.fullscreen-mode .playlist-toggle{
+  opacity:0;
+  pointer-events:none;
+}
+
+.fullscreen-mode .playlist-panel{
+  opacity:0 !important;
+  visibility:hidden !important;
+  pointer-events:none;
+}
+
+/* UI 다시 표시 */
+.fullscreen-mode.show-ui .overlay{
+  opacity:1;
+  pointer-events:auto;
+}
+
+.fullscreen-mode.show-ui .player{
+  opacity:1;
+  pointer-events:auto;
+}
+
+.fullscreen-mode.show-ui .playlist-toggle{
+  opacity:1;
+  pointer-events:auto;
+}
+
+.fullscreen-mode.show-ui .fullscreen-toggle{
+  opacity:1;
+  pointer-events:auto;
+}
+
 /* 모바일 */
 @media(max-width:768px){
 
@@ -275,6 +350,14 @@ body{
     height:44px;
   }
 
+  .fullscreen-toggle{
+    top:24px;
+    right:72px;
+
+    width:44px;
+    height:44px;
+  }
+
   .playlist-panel{
     top:82px;
     right:18px;
@@ -305,11 +388,16 @@ body{
     style="background-image:url('https://res.cloudinary.com/dmtdmife2/image/upload/q_auto/f_auto/v1779959020/IMG_1544_appkrg.jpg')">
   </div>
 
-    <div class="slide"
+  <div class="slide"
     style="background-image:url('https://res.cloudinary.com/dmtdmife2/image/upload/q_auto/f_auto/v1779962816/IMG_1493_hbq15k.jpg')">
   </div>
 
 </div>
+
+<!-- 전체화면 버튼 -->
+<button class="fullscreen-toggle" id="fullscreenBtn">
+  ⛶
+</button>
 
 <!-- 플레이리스트 버튼 -->
 <button class="playlist-toggle" id="playlistBtn">
@@ -324,16 +412,21 @@ body{
   </div>
 
   <div class="track active" data-index="0">
+    <div class="track-name">If Only</div>
+    <div class="track-artist">RAVEENA</div>
+  </div>
+
+  <div class="track" data-index="1">
     <div class="track-name">None Of My Business</div>
     <div class="track-artist">Tinashe</div>
   </div>
 
-  <div class="track" data-index="1">
+  <div class="track" data-index="2">
     <div class="track-name">Focus</div>
     <div class="track-artist">Allie X</div>
   </div>
 
-  <div class="track" data-index="2">
+  <div class="track" data-index="3">
     <div class="track-name">Stay</div>
     <div class="track-artist">BANKS</div>
   </div>
@@ -346,11 +439,11 @@ body{
   <div class="music-info">
 
     <div class="song-title" id="songTitle">
-      None Of My Business
+      If Only
     </div>
 
     <div class="artist" id="artistName">
-      TINASHE
+      RAVEENA
     </div>
 
   </div>
@@ -381,12 +474,12 @@ body{
 /* 음악 리스트 */
 const playlist = [
 
-  {
+{
   title:"If Only",
   artist:"RAVEENA",
   src:"https://res.cloudinary.com/dmtdmife2/video/upload/q_auto/f_auto/v1779962474/Raveena_-_If_Only_shz1qe.mp3"
 },
-  
+
 {
   title:"None Of My Business",
   artist:"TINASHE",
@@ -423,9 +516,12 @@ const tracks = document.querySelectorAll(".track");
 const playlistBtn = document.getElementById("playlistBtn");
 const playlistPanel = document.getElementById("playlistPanel");
 
+const fullscreenBtn = document.getElementById("fullscreenBtn");
+
 /* 현재 인덱스 */
 let current = 0;
 let isPlaying = false;
+let fullscreenMode = false;
 
 /* 음악 불러오기 */
 function loadSong(index){
@@ -574,6 +670,54 @@ setInterval(()=>{
   changeBackground(next);
 
 },10000);
+
+/* 전체화면 모드 */
+fullscreenBtn.addEventListener("click", ()=>{
+
+  fullscreenMode = !fullscreenMode;
+
+  if(fullscreenMode){
+
+    document.body.classList.add("fullscreen-mode");
+
+    if(document.documentElement.requestFullscreen){
+      document.documentElement.requestFullscreen();
+    }
+
+    fullscreenBtn.innerHTML = "✕";
+
+  }else{
+
+    document.body.classList.remove("fullscreen-mode");
+    document.body.classList.remove("show-ui");
+
+    if(document.exitFullscreen){
+      document.exitFullscreen();
+    }
+
+    fullscreenBtn.innerHTML = "⛶";
+
+  }
+
+});
+
+/* 화면 탭 시 UI 토글 */
+document.addEventListener("click",(e)=>{
+
+  if(!fullscreenMode) return;
+
+  if(
+    e.target.closest(".player") ||
+    e.target.closest(".playlist-panel") ||
+    e.target.closest(".playlist-toggle") ||
+    e.target.closest(".fullscreen-toggle")
+  ){
+    return;
+  }
+
+  document.body.classList.toggle("show-ui");
+
+});
 
 /* 최초 로드 */
 loadSong(current);
