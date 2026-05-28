@@ -478,6 +478,53 @@
 
   /* hidden audio */
   audio { display: none; }
+  /* ── MOBILE RESPONSIVE ── */
+  @media (max-width: 600px) {
+    #player { padding: 0 20px 28px; gap: 10px; }
+    #track-title { font-size: clamp(18px, 5vw, 26px); max-width: 80vw; }
+    #track-artist { font-size: 11px; }
+    #controls { gap: 16px; }
+    #vol-wrap { display: none; }
+    #shuffle-btn, #repeat-btn { display: none; }
+    .ctrl-btn.play-btn { width: 58px; height: 58px; }
+    #admin-toggle { font-size: 10px; padding: 7px 14px; top: 20px; }
+    #media-info { top: 20px; left: 20px; }
+    #media-dots { top: 20px; right: 20px; }
+    #prev-media, #next-media { opacity: 0.65 !important; width: 36px; height: 36px; font-size: 14px; }
+    #prev-media { left: 8px; }
+    #next-media { right: 8px; }
+    #admin-panel { width: 100%; border-left: none; }
+    #playlist-overlay { left: 16px; right: 16px; width: auto; bottom: 170px; }
+    .pw-box { padding: 36px 28px; min-width: unset; width: 90vw; }
+    #fullscreen-btn { bottom: 28px; right: 20px; }
+    #progress-wrap { height: 4px; }
+    .empty-state p { font-size: 12px; letter-spacing: 1px; }
+    .time-label { font-size: 10px; min-width: 28px; }
+  }
+
+  /* 아이폰 노치/홈바 safe area 대응 */
+  @supports (padding-bottom: env(safe-area-inset-bottom)) {
+    #player { padding-bottom: calc(28px + env(safe-area-inset-bottom)); }
+  }
+
+
+
+
+  /* ── 모바일 가로화면 전체화면 최적화 ── */
+  @media (max-width: 900px) and (orientation: landscape) {
+    #player {
+      padding: 0 24px 16px;
+      gap: 8px;
+    }
+    #track-title {
+      font-size: clamp(14px, 3vw, 22px);
+      max-width: 55vw;
+    }
+    #track-artist { font-size: 10px; }
+    .ctrl-btn.play-btn { width: 46px; height: 46px; }
+    #controls { gap: 20px; }
+    #progress-wrap { height: 3px; }
+  }
 
   /* ── FULLSCREEN MODE ── */
   #fullscreen-btn {
@@ -1237,9 +1284,20 @@ function toggleFullscreenMode() {
   if (document.getElementById('fs-icon-ctrl')) document.getElementById('fs-icon-ctrl').innerHTML = fsPath;
 
   if (isFullscreenMode) {
+    // 브라우저 전체화면 요청
     document.documentElement.requestFullscreen?.().catch(()=>{});
+
+    // 모바일: 가로 방향 강제 전환
+    if (screen.orientation && screen.orientation.lock) {
+      screen.orientation.lock('landscape').catch(() => {});
+    } else if (window.screen && window.screen.lockOrientation) {
+      window.screen.lockOrientation('landscape');
+    }
+
+    // 모바일 터치 시 컨트롤 표시
     document.addEventListener('mousemove', onCursorMove);
-    // 처음 진입 시 잠깐 보여줬다가 숨기기
+    document.addEventListener('touchstart', onCursorMove, { passive: true });
+
     document.body.classList.add('cursor-active');
     cursorTimer = setTimeout(() => document.body.classList.remove('cursor-active'), 2500);
   } else {
@@ -1254,7 +1312,16 @@ function exitFullscreenMode() {
   document.getElementById('fs-icon').innerHTML = normalPath;
   if (document.getElementById('fs-icon-ctrl')) document.getElementById('fs-icon-ctrl').innerHTML = normalPath;
   if (document.fullscreenElement) document.exitFullscreen?.().catch(()=>{});
+
+  // 모바일: 방향 잠금 해제
+  if (screen.orientation && screen.orientation.unlock) {
+    screen.orientation.unlock();
+  } else if (window.screen && window.screen.unlockOrientation) {
+    window.screen.unlockOrientation();
+  }
+
   document.removeEventListener('mousemove', onCursorMove);
+  document.removeEventListener('touchstart', onCursorMove);
   clearTimeout(cursorTimer);
 }
 
@@ -1283,6 +1350,29 @@ document.addEventListener('keydown', e => {
   if (e.code === 'ArrowRight' && e.shiftKey) changeMedia(1);
   if (e.code === 'ArrowLeft' && e.shiftKey) changeMedia(-1);
 });
+
+
+// ══════════════════════════════════════════════
+//  TOUCH / SWIPE (모바일)
+// ══════════════════════════════════════════════
+let touchStartX = 0, touchStartY = 0, touchStartTime = 0;
+
+document.addEventListener('touchstart', e => {
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+  touchStartTime = Date.now();
+}, { passive: true });
+
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  const dy = e.changedTouches[0].clientY - touchStartY;
+  const dt = Date.now() - touchStartTime;
+  // 빠른 수평 스와이프 (200ms 이내, 수평 60px 이상, 수직 40px 미만)
+  if (dt < 300 && Math.abs(dx) > 60 && Math.abs(dy) < 40) {
+    if (dx < 0) nextTrack();   // 왼쪽 → 다음곡
+    else prevTrack();           // 오른쪽 → 이전곡
+  }
+}, { passive: true });
 
 // ══════════════════════════════════════════════
 //  INIT
